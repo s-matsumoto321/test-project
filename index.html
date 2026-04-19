@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ツカイドキ">
+<meta name="theme-color" content="#0C447C">
+<title>ツカイドキ</title>
+<style>
+:root {
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f5f4ee;
+  --color-background-tertiary: #ebe9e0;
+  --color-text-primary: #2c2c2a;
+  --color-text-secondary: #73726c;
+  --color-text-tertiary: #9c9a92;
+  --color-border-tertiary: rgba(0,0,0,0.08);
+  --color-border-secondary: rgba(0,0,0,0.18);
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background-primary: #1a1a18;
+    --color-background-secondary: #232321;
+    --color-background-tertiary: #2c2c2a;
+    --color-text-primary: #ebe9e0;
+    --color-text-secondary: #9c9a92;
+    --color-text-tertiary: #73726c;
+    --color-border-tertiary: rgba(255,255,255,0.12);
+    --color-border-secondary: rgba(255,255,255,0.22);
+  }
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;width:100%;overflow:hidden;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Hiragino Sans","Yu Gothic",Meiryo,sans-serif;background:var(--color-background-secondary);color:var(--color-text-primary);-webkit-tap-highlight-color:transparent;}
+
+.app{width:100vw;height:100vh;max-width:100vw;display:flex;flex-direction:column;overflow:hidden;background:var(--color-background-primary);}
+.page{display:none;flex:1;flex-direction:column;min-height:0;overflow:hidden;}
+.page.on{display:flex;}
+
+.hdr{background:#0C447C;padding:max(env(safe-area-inset-top),12px) 20px 14px;display:flex;justify-content:space-between;align-items:flex-start;flex-shrink:0;}
+.hdr-left{flex:1;}
+.hdr-logo{display:flex;align-items:center;gap:6px;}
+.hdr-sub{font-size:10px;color:rgba(255,255,255,0.65);margin-top:8px;}
+.hdr-total{font-size:24px;font-weight:500;color:#fff;line-height:1.1;margin-top:1px;}
+.hdr-note{font-size:9px;color:rgba(255,255,255,0.5);margin-top:1px;}
+.menu-btn{width:28px;height:28px;display:flex;flex-direction:column;justify-content:center;gap:3px;cursor:pointer;align-items:flex-end;margin-top:4px;background:none;border:none;padding:0;}
+.menu-btn span{display:block;width:16px;height:1.5px;background:rgba(255,255,255,0.8);border-radius:1px;}
+
+.match-bar{margin:8px 14px 0;border-radius:var(--border-radius-lg);padding:8px 12px;display:flex;align-items:center;gap:9px;background:#EAF3DE;flex-shrink:0;}
+.m-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;background:#1D9E75;color:#fff;}
+.m-txt{color:#27500A;font-size:11px;font-weight:500;}
+.m-sub{font-size:9px;margin-top:1px;color:#3B6D11;}
+
+.dual-chart{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:8px 14px 6px;flex-shrink:0;}
+.chart-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:9px 8px;text-align:center;cursor:pointer;position:relative;}
+.chart-card:active{background:var(--color-background-secondary);}
+.tap-indicator{position:absolute;top:6px;right:7px;font-size:10px;color:var(--color-text-secondary);}
+.chart-label{font-size:10px;color:var(--color-text-secondary);margin-bottom:1px;}
+.chart-label-badge{display:inline-block;font-size:8px;padding:1px 6px;border-radius:20px;margin-left:2px;vertical-align:middle;}
+.cl-blue{background:#E6F1FB;color:#0C447C;}
+.cl-green{background:#EAF3DE;color:#27500A;}
+.chart-wrap{position:relative;width:102px;height:102px;margin:3px auto 5px;}
+.chart-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
+.chart-total{font-size:12px;font-weight:500;color:var(--color-text-primary);line-height:1;}
+.chart-total-sub{font-size:8px;color:var(--color-text-secondary);margin-top:1px;}
+.legend{margin-top:2px;}
+.leg-row{display:flex;align-items:center;justify-content:space-between;padding:1.5px 0;font-size:9px;gap:4px;}
+.leg-left{display:flex;align-items:center;gap:4px;min-width:0;flex:1;}
+.leg-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.leg-name{color:var(--color-text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.leg-val{font-weight:500;color:var(--color-text-primary);flex-shrink:0;}
+
+.diff-card{margin:0 14px 8px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:8px 12px;flex-shrink:0;}
+.diff-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:0.5px solid var(--color-border-tertiary);}
+.diff-row:last-child{border-bottom:none;}
+.diff-label{font-size:11px;color:var(--color-text-secondary);}
+.diff-val{font-size:11px;font-weight:500;color:var(--color-text-primary);}
+.diff-val.big{font-size:13px;color:#0C447C;}
+
+.safe-card{margin:0 14px calc(env(safe-area-inset-bottom) + 10px);background:#EAF3DE;border-radius:var(--border-radius-lg);padding:10px 12px;flex-shrink:0;}
+.safe-label{font-size:10px;color:#27500A;margin-bottom:2px;}
+.safe-amt{font-size:20px;font-weight:500;color:#173404;line-height:1.1;}
+.safe-note{font-size:9px;color:#3B6D11;margin-top:2px;line-height:1.4;}
+
+.list-hdr{background:#0C447C;padding:max(env(safe-area-inset-top),12px) 20px 14px;flex-shrink:0;}
+.back-btn{font-size:11px;color:rgba(255,255,255,0.7);cursor:pointer;margin-bottom:6px;background:none;border:none;padding:0;}
+.list-title{font-size:15px;font-weight:500;color:#fff;margin-bottom:1px;}
+.list-sub{font-size:10px;color:rgba(255,255,255,0.6);}
+.list-total-row{display:flex;justify-content:space-between;align-items:flex-end;margin-top:8px;}
+.list-total{font-size:20px;font-weight:500;color:#fff;line-height:1.1;}
+.list-total-label{font-size:9px;color:rgba(255,255,255,0.55);}
+.list-sub2{font-size:14px;font-weight:500;color:#fff;}
+
+.list-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 14px calc(env(safe-area-inset-bottom) + 16px);}
+.item-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:10px 12px;cursor:pointer;margin-bottom:6px;}
+.item-card:active{background:var(--color-background-secondary);}
+.item-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;}
+.item-name{font-size:12px;font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:7px;}
+.item-dot{width:10px;height:10px;border-radius:50%;}
+.item-amt{font-size:14px;font-weight:500;color:var(--color-text-primary);}
+.item-meta{font-size:9px;color:var(--color-text-secondary);margin-left:17px;}
+.item-bar-bg{background:var(--color-background-secondary);border-radius:4px;height:3px;overflow:hidden;margin-top:6px;}
+.item-bar-fill{height:100%;border-radius:4px;}
+.item-status{font-size:9px;padding:1px 6px;border-radius:20px;margin-left:4px;}
+.st-ok{background:#EAF3DE;color:#27500A;}
+.st-warn{background:#FAEEDA;color:#633806;}
+
+.detail-hdr{background:#0C447C;padding:max(env(safe-area-inset-top),10px) 20px 12px;flex-shrink:0;}
+.hdr-row2{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:4px;}
+.hdr-left2{min-width:0;flex:1;}
+.detail-pj-name{font-size:15px;font-weight:500;color:#fff;line-height:1.2;}
+.detail-timing{font-size:10px;color:rgba(255,255,255,0.6);margin-top:1px;}
+.hdr-right2{text-align:right;flex-shrink:0;}
+.hdr-amt-label{font-size:9px;color:rgba(255,255,255,0.55);}
+.hdr-amt{font-size:18px;font-weight:500;color:#fff;line-height:1.1;}
+.hdr-amt-sub{font-size:9px;color:rgba(255,255,255,0.55);}
+.ai-card{margin:10px 14px 0;background:#E6F1FB;border-radius:var(--border-radius-lg);padding:9px 12px;flex-shrink:0;display:flex;align-items:flex-start;gap:8px;}
+.ai-icon{font-size:13px;color:#185FA5;flex-shrink:0;line-height:1.5;}
+.ai-body{flex:1;}
+.ai-lbl{font-size:9px;color:#185FA5;font-weight:500;margin-bottom:1px;}
+.ai-txt{font-size:11px;color:#0C447C;line-height:1.45;}
+.graph-card{margin:8px 14px 6px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:10px 12px 8px;position:relative;flex-shrink:0;}
+.graph-legend{display:flex;gap:12px;margin-bottom:6px;}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--color-text-secondary);}
+.legend-line{width:14px;height:2px;border-radius:1px;}
+.legend-dot-r{width:7px;height:7px;border-radius:50%;background:#E24B4A;}
+.graph-hint{font-size:9px;color:var(--color-text-secondary);margin-top:4px;text-align:center;}
+.tooltip{position:absolute;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 9px;font-size:10px;pointer-events:none;z-index:10;white-space:nowrap;transform:translate(-50%,-110%);box-shadow:0 2px 8px rgba(0,0,0,0.1);display:none;}
+.tooltip.on{display:block;}
+.tip-title{font-weight:500;color:var(--color-text-primary);margin-bottom:1px;font-size:10px;}
+.tip-amt{font-size:9px;}
+.tip-amt.pos{color:#27500A;}
+.tip-amt.neg{color:#791F1F;}
+.tip-arrow{position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid var(--color-background-primary);}
+.ev-section{flex:1;display:flex;flex-direction:column;min-height:0;padding:2px 14px calc(env(safe-area-inset-bottom) + 10px);}
+.sec-title{font-size:10px;font-weight:500;color:var(--color-text-secondary);padding:4px 2px;flex-shrink:0;display:flex;justify-content:space-between;align-items:center;}
+.sec-title-sub{font-size:9px;color:var(--color-text-tertiary);font-weight:400;}
+.ev-card{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:4px 12px;}
+.ev-row{display:flex;align-items:flex-start;gap:8px;padding:7px 6px;border-bottom:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);transition:background .3s;margin:0 -6px;cursor:pointer;}
+.ev-row:last-child{border-bottom:none;}
+.ev-row.highlight{background:#FAEEDA;}
+.ev-row.highlight-red{background:#FCEBEB;}
+.ev-yr{font-size:10px;color:var(--color-text-secondary);width:34px;flex-shrink:0;padding-top:1px;}
+.ev-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.ev-body{flex:1;min-width:0;}
+.ev-name{font-size:11px;font-weight:500;color:var(--color-text-primary);}
+.ev-detail{font-size:9px;color:var(--color-text-secondary);margin-top:1px;}
+.ev-amt{font-size:10px;font-weight:500;margin-top:1px;}
+.ev-amt.pos{color:#27500A;}
+.ev-amt.neg{color:#791F1F;}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<div id="pg-home" class="page on">
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="hdr-logo">
+        <svg width="100" height="26" viewBox="0 0 100 26" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="17" width="96" height="4.5" rx="2.25" fill="rgba(255,255,255,0.2)"/>
+          <rect x="0" y="17" width="62" height="4.5" rx="2.25" fill="#fff"/>
+          <polygon points="62,10 68,21 56,21" fill="#1D9E75"/>
+          <text x="0" y="13" font-family="system-ui,sans-serif" font-weight="700" font-size="12" fill="#fff">ツカイドキ</text>
+        </svg>
+      </div>
+      <div class="hdr-sub">総資産</div>
+      <div class="hdr-total">¥7,750,000</div>
+      <div class="hdr-note">プール金・ポートフォリオ 両方の合計</div>
+    </div>
+    <button class="menu-btn" aria-label="メニュー">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="match-bar">
+    <div class="m-dot">✓</div>
+    <div>
+      <div class="m-txt">プール金 ＝ ポートフォリオ　一致</div>
+      <div class="m-sub">差額 ¥0 · 記録は整合しています</div>
+    </div>
+  </div>
+  <div class="dual-chart">
+    <div class="chart-card" id="card-pool">
+      <div class="tap-indicator">›</div>
+      <div class="chart-label">プール金<span class="chart-label-badge cl-blue">口座別</span></div>
+      <div class="chart-wrap">
+        <svg width="102" height="102" viewBox="0 0 120 120" id="svg-pool" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="chart-center"><div class="chart-total">¥775万</div><div class="chart-total-sub">5口座</div></div>
+      </div>
+      <div class="legend">
+        <div class="leg-row"><div class="leg-left"><div class="leg-dot" style="background:#0C447C;"></div><span class="leg-name">証券口座</span></div><span class="leg-val">¥300万</span></div>
+        <div class="leg-row"><div class="leg-left"><div class="leg-dot" style="background:#185FA5;"></div><span class="leg-name">定期預金</span></div><span class="leg-val">¥250万</span></div>
+        <div class="leg-row"><div class="leg-left"><div class="leg-dot" style="background:#378ADD;"></div><span class="leg-name">積立NISA</span></div><span class="leg-val">¥100万</span></div>
+        <div class="leg-row"><div class="leg-left"><div class="leg-dot" style="background:#85B7EB;"></div><span class="leg-name">メイン銀行</span></div><span class="leg-val">¥80万</span></div>
+        <div class="leg-row"><div class="leg-left"><div class="leg-dot" style="background:#B5D4F4;"></div><span class="leg-name">サブ銀行</span></div><span class="leg-val">¥45万</span></div>
+      </div>
+    </div>
+    <div class="chart-card" id="card-pf">
+      <div class="tap-indicator">›</div>
+      <div class="chart-label">ポートフォリオ<span class="chart-label-badge cl-green">用途別</span></div>
+      <div class="chart-wrap">
+        <svg width="102" height="102" viewBox="0 0 120 120" id="svg-pf" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="chart-center"><div class="chart-total">¥775万</div><div class="chart-total-sub">5PJ</div></div>
+      </div>
+      <div class="legend">
+        <div class="leg-row"><div class="leg-left"><div class="leg-dot" style="background:#0C447C;"></div><span class="leg-name">教育PJ</span></div><span class="leg-val">¥300万</span></div>
+        <div class="leg-row"><div class="leg-left"><div class="leg-dot" style="background:#1D9E75;"></div><span class="leg-name">老後PJ</span></div><span class="leg-val">¥250万</span></div>
+        <div class="leg-row"><div class="leg-left"><div class="leg-dot" style="background:#888780;"></div><span class="leg-name">車PJ</span></div><span class="leg-val">¥100万</span></div>
+        <div class="leg-row"><div class="leg-left"><div class="leg-dot" style="background:#534AB7;"></div><span class="leg-name">その他</span></div><span class="leg-val">¥115万</span></div>
+        <div class="leg-row"><div class="leg-left"><div class="leg-dot" style="background:#EF9F27;"></div><span class="leg-name">旅行PJ</span></div><span class="leg-val">¥10万</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="diff-card">
+    <div class="diff-row"><span class="diff-label">プール金 合計</span><span class="diff-val big">¥7,750,000</span></div>
+    <div class="diff-row"><span class="diff-label">ポートフォリオ 合計</span><span class="diff-val big">¥7,750,000</span></div>
+    <div class="diff-row"><span class="diff-label" style="color:#1D9E75;font-weight:500;">差額</span><span class="diff-val" style="color:#1D9E75;">¥0 ✓</span></div>
+  </div>
+  <div class="safe-card">
+    <div class="safe-label">今月の安心ライン</div>
+    <div class="safe-amt">¥87,000</div>
+    <div class="safe-note">全プロジェクト計画達成後の余力。この範囲なら自由に使えます。</div>
+  </div>
+</div>
+
+<div id="pg-pool" class="page">
+  <div class="list-hdr">
+    <button class="back-btn" data-page="home">← ホーム</button>
+    <div class="list-title">プール金</div>
+    <div class="list-sub">実際の口座残高の一覧</div>
+    <div class="list-total-row">
+      <div>
+        <div class="list-total-label">合計</div>
+        <div class="list-total">¥7,750,000</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="list-total-label">口座数</div>
+        <div class="list-sub2">5口座</div>
+      </div>
+    </div>
+  </div>
+  <div class="list-scroll">
+    <div class="item-card">
+      <div class="item-top"><div class="item-name"><div class="item-dot" style="background:#0C447C;"></div>証券口座</div><div class="item-amt">¥3,000,000</div></div>
+      <div class="item-meta">SBI証券 · 投資信託・株式</div>
+      <div class="item-bar-bg"><div class="item-bar-fill" style="width:38.7%;background:#0C447C;"></div></div>
+    </div>
+    <div class="item-card">
+      <div class="item-top"><div class="item-name"><div class="item-dot" style="background:#185FA5;"></div>定期預金</div><div class="item-amt">¥2,500,000</div></div>
+      <div class="item-meta">〇〇銀行 · 1年定期</div>
+      <div class="item-bar-bg"><div class="item-bar-fill" style="width:32.3%;background:#185FA5;"></div></div>
+    </div>
+    <div class="item-card">
+      <div class="item-top"><div class="item-name"><div class="item-dot" style="background:#378ADD;"></div>積立NISA</div><div class="item-amt">¥1,000,000</div></div>
+      <div class="item-meta">月¥33,000 積立中</div>
+      <div class="item-bar-bg"><div class="item-bar-fill" style="width:12.9%;background:#378ADD;"></div></div>
+    </div>
+    <div class="item-card">
+      <div class="item-top"><div class="item-name"><div class="item-dot" style="background:#85B7EB;"></div>メイン銀行</div><div class="item-amt">¥800,000</div></div>
+      <div class="item-meta">普通預金 · 給与振込口座</div>
+      <div class="item-bar-bg"><div class="item-bar-fill" style="width:10.3%;background:#85B7EB;"></div></div>
+    </div>
+    <div class="item-card">
+      <div class="item-top"><div class="item-name"><div class="item-dot" style="background:#B5D4F4;"></div>サブ銀行</div><div class="item-amt">¥450,000</div></div>
+      <div class="item-meta">普通預金 · 生活費</div>
+      <div class="item-bar-bg"><div class="item-bar-fill" style="width:5.8%;background:#B5D4F4;"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="pg-pf" class="page">
+  <div class="list-hdr">
+    <button class="back-btn" data-page="home">← ホーム</button>
+    <div class="list-title">ポートフォリオ</div>
+    <div class="list-sub">用途別プロジェクトの一覧</div>
+    <div class="list-total-row">
+      <div>
+        <div class="list-total-label">合計</div>
+        <div class="list-total">¥7,750,000</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="list-total-label">プロジェクト</div>
+        <div class="list-sub2">5PJ</div>
+      </div>
+    </div>
+  </div>
+  <div class="list-scroll">
+    <div class="item-card" data-detail="edu">
+      <div class="item-top"><div class="item-name"><div class="item-dot" style="background:#0C447C;"></div>教育プロジェクト<span class="item-status st-ok">◎</span></div><div class="item-amt">¥3,000,000</div></div>
+      <div class="item-meta">2044年 大学入学まで · 目標¥500万</div>
+      <div class="item-bar-bg"><div class="item-bar-fill" style="width:60%;background:#0C447C;"></div></div>
+    </div>
+    <div class="item-card" data-detail="ret">
+      <div class="item-top"><div class="item-name"><div class="item-dot" style="background:#1D9E75;"></div>老後プロジェクト<span class="item-status st-warn">△</span></div><div class="item-amt">¥2,500,000</div></div>
+      <div class="item-meta">2050年 定年まで · 目標¥3,000万</div>
+      <div class="item-bar-bg"><div class="item-bar-fill" style="width:8%;background:#EF9F27;"></div></div>
+    </div>
+    <div class="item-card" data-detail="car">
+      <div class="item-top"><div class="item-name"><div class="item-dot" style="background:#888780;"></div>車プロジェクト<span class="item-status st-ok">◎</span></div><div class="item-amt">¥1,000,000</div></div>
+      <div class="item-meta">2028年 買い替え · 目標¥200万</div>
+      <div class="item-bar-bg"><div class="item-bar-fill" style="width:50%;background:#888780;"></div></div>
+    </div>
+    <div class="item-card">
+      <div class="item-top"><div class="item-name"><div class="item-dot" style="background:#534AB7;"></div>その他PJ<span class="item-status st-ok">◎</span></div><div class="item-amt">¥1,150,000</div></div>
+      <div class="item-meta">冠婚葬祭・家修繕などの予備枠</div>
+      <div class="item-bar-bg"><div class="item-bar-fill" style="width:100%;background:#534AB7;"></div></div>
+    </div>
+    <div class="item-card" data-detail="trip">
+      <div class="item-top"><div class="item-name"><div class="item-dot" style="background:#EF9F27;"></div>旅行プロジェクト<span class="item-status st-ok">◎</span></div><div class="item-amt">¥100,000</div></div>
+      <div class="item-meta">来年夏 ハワイ旅行 · 目標¥30万</div>
+      <div class="item-bar-bg"><div class="item-bar-fill" style="width:33%;background:#EF9F27;"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="pg-detail" class="page">
+  <div class="detail-hdr">
+    <button class="back-btn" data-page="pf">← ポートフォリオ</button>
+    <div class="hdr-row2">
+      <div class="hdr-left2">
+        <div class="detail-pj-name" id="d-name"></div>
+        <div class="detail-timing" id="d-timing"></div>
+      </div>
+      <div class="hdr-right2">
+        <div class="hdr-amt-label">積み上がり</div>
+        <div class="hdr-amt" id="d-now"></div>
+        <div class="hdr-amt-sub" id="d-status-txt"></div>
+      </div>
+    </div>
+  </div>
+  <div class="ai-card">
+    <div class="ai-icon">✦</div>
+    <div class="ai-body">
+      <div class="ai-lbl">ツカイドキ AI</div>
+      <div class="ai-txt" id="d-ai"></div>
+    </div>
+  </div>
+  <div class="graph-card" id="graph-card">
+    <div class="graph-legend">
+      <div class="legend-item"><div style="width:14px;border-top:2px dashed #0C447C;"></div>計画</div>
+      <div class="legend-item"><div class="legend-line" style="background:#1D9E75;"></div>実績</div>
+      <div class="legend-item"><div class="legend-dot-r"></div>支出</div>
+    </div>
+    <svg width="100%" viewBox="0 0 320 140" id="chart-svg" style="display:block;" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="tooltip" id="tooltip">
+      <div class="tip-title" id="tip-title"></div>
+      <div class="tip-amt" id="tip-amt"></div>
+      <div class="tip-arrow"></div>
+    </div>
+    <div class="graph-hint">● 点をタップ → 下の年表の該当項目へ</div>
+  </div>
+  <div class="ev-section">
+    <div class="sec-title"><span>積み立て・支出の年表</span><span class="sec-title-sub">スクロールで確認</span></div>
+    <div class="ev-card" id="ev-card"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+(function() {
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+  var PAGES = ['home','pool','pf','detail'];
+
+  function showPage(n) {
+    for (var i = 0; i < PAGES.length; i++) {
+      var el = document.getElementById('pg-' + PAGES[i]);
+      if (!el) continue;
+      if (PAGES[i] === n) el.classList.add('on');
+      else el.classList.remove('on');
+    }
+  }
+
+  var PROJECTS = {
+    edu: {
+      name:'教育プロジェクト', timing:'2044年 大学入学まで', now:3000000,
+      statusTxt:'計画通り',
+      ai:'教育費ピークの2044年大学入学までに、計画通り積み上がっています。あと8年で目標達成見込み。',
+      years:["'25","'27","'29","'31","'33","'35","'37","'39","'41","'43","'45","'47"],
+      plan:[300,650,1010,1380,1760,2150,2550,3100,3700,4000,3000,2000],
+      actual:[300,620,980,1340,1700,null,null,null,null,null,null,null],
+      events:[
+        {idx:0,type:'start',dot:'#0C447C',year:'2025',name:'積立スタート',detail:'月¥30,000 配分中',amt:'+¥30,000/月',pos:true},
+        {idx:2,type:'in',dot:'#EF9F27',year:'2027',name:'保育園費用 始動',detail:'支出が始まるが積立が上回る',amt:'-¥720,000/年',pos:false},
+        {idx:4,type:'in',dot:'#1D9E75',year:'2033',name:'小学校入学',detail:'教育費が軽減、積立が加速',amt:'-¥309,000/年',pos:false},
+        {idx:7,type:'in',dot:'#EF9F27',year:'2038',name:'中学校入学',detail:'教育費が再び増加',amt:'-¥321,000/年',pos:false},
+        {idx:9,type:'in',dot:'#EF9F27',year:'2043',name:'高校入学',detail:'学費・塾費用がピーク近く',amt:'-¥488,000/年',pos:false},
+        {idx:10,type:'spend',dot:'#E24B4A',year:'2044',name:'大学入学',detail:'まとまった支出が発生',amt:'-¥1,000,000',pos:false},
+        {idx:11,type:'spend',dot:'#E24B4A',year:'2046',name:'大学3年次授業料',detail:'継続的な大学費用',amt:'-¥1,000,000',pos:false}
+      ]
+    },
+    ret: {
+      name:'老後プロジェクト', timing:'2050年 定年まで', now:2500000,
+      statusTxt:'要注意',
+      ai:'このペースでは2058年達成見込み（8年遅れ）。月+¥15,000の増額で計画通りになります。',
+      years:["'25","'28","'31","'34","'37","'40","'43","'46","'49","'52","'55","'58"],
+      plan:[250,530,870,1280,1780,2390,3130,4020,5000,4200,3400,2600],
+      actual:[250,490,790,1150,1580,null,null,null,null,null,null,null],
+      events:[
+        {idx:0,type:'start',dot:'#0C447C',year:'2025',name:'積立スタート',detail:'月¥50,000 配分中',amt:'+¥50,000/月',pos:true},
+        {idx:4,type:'in',dot:'#1D9E75',year:'2039',name:'積立増額予定',detail:'教育費軽減後、月¥65,000へ',amt:'+¥65,000/月',pos:true},
+        {idx:8,type:'spend',dot:'#E24B4A',year:'2050',name:'定年・取り崩し開始',detail:'4%複利運用から年-420万',amt:'-¥4,200,000/年',pos:false},
+        {idx:10,type:'spend',dot:'#E24B4A',year:'2055',name:'生活費縮小フェーズ',detail:'年金収入＋取り崩し-300万',amt:'-¥3,000,000/年',pos:false}
+      ]
+    },
+    trip: {
+      name:'旅行プロジェクト', timing:'来年夏 ハワイ旅行', now:100000,
+      statusTxt:'順調',
+      ai:'このペースなら来年5月に達成見込みです。夏の旅行に余裕で間に合います。',
+      years:['4月','6月','8月','10月','12月','2月','4月'],
+      plan:[10,50,90,130,170,220,300],
+      actual:[10,40,80,100,null,null,null],
+      events:[
+        {idx:0,type:'start',dot:'#0C447C',year:'2025',name:'積立スタート',detail:'月¥10,000 配分中',amt:'+¥10,000/月',pos:true},
+        {idx:6,type:'spend',dot:'#E24B4A',year:'2026',name:'ハワイ旅行（使用）',detail:'旅行PJから全額使用',amt:'-¥300,000',pos:false}
+      ]
+    },
+    car: {
+      name:'車プロジェクト', timing:'2028年 買い替え予定', now:1000000,
+      statusTxt:'順調',
+      ai:'このペースなら2027年12月に達成見込みです。2028年の買い替えに余裕で間に合います。',
+      years:["'25","'26","'27","'28"],
+      plan:[100,148,196,200],
+      actual:[100,148,null,null],
+      events:[
+        {idx:0,type:'start',dot:'#0C447C',year:'2025',name:'積立スタート',detail:'月¥40,000 配分中',amt:'+¥40,000/月',pos:true},
+        {idx:3,type:'spend',dot:'#E24B4A',year:'2028',name:'車 買い替え（使用）',detail:'車PJから全額使用',amt:'-¥2,000,000',pos:false}
+      ]
+    }
+  };
+
+  function makeSvgEl(tag, attrs) {
+    var el = document.createElementNS(SVG_NS, tag);
+    if (attrs) {
+      for (var k in attrs) {
+        if (attrs.hasOwnProperty(k)) el.setAttribute(k, attrs[k]);
+      }
+    }
+    return el;
+  }
+
+  function drawDonut(svgId, data) {
+    var el = document.getElementById(svgId);
+    if (!el) return;
+    while (el.firstChild) el.removeChild(el.firstChild);
+    var cx = 60, cy = 60, R = 48, r = 30;
+    var total = 0;
+    for (var i = 0; i < data.length; i++) total += data[i].v;
+    var a0 = -Math.PI / 2;
+    for (var j = 0; j < data.length; j++) {
+      var d = data[j];
+      var frac = d.v / total;
+      var a1 = a0 + frac * Math.PI * 2;
+      var largeArc = frac > 0.5 ? 1 : 0;
+      var x0 = cx + R * Math.cos(a0), y0 = cy + R * Math.sin(a0);
+      var x1 = cx + R * Math.cos(a1), y1 = cy + R * Math.sin(a1);
+      var xi1 = cx + r * Math.cos(a1), yi1 = cy + r * Math.sin(a1);
+      var xi0 = cx + r * Math.cos(a0), yi0 = cy + r * Math.sin(a0);
+      var dPath = 'M' + x0 + ',' + y0 +
+                  ' A' + R + ',' + R + ' 0 ' + largeArc + ' 1 ' + x1 + ',' + y1 +
+                  ' L' + xi1 + ',' + yi1 +
+                  ' A' + r + ',' + r + ' 0 ' + largeArc + ' 0 ' + xi0 + ',' + yi0 + ' Z';
+      var path = makeSvgEl('path', {d: dPath, fill: d.c});
+      el.appendChild(path);
+      a0 = a1;
+    }
+  }
+
+  function niceTickStep(maxVal, targetTicks) {
+    var rough = maxVal / targetTicks;
+    var mag = Math.pow(10, Math.floor(Math.log10(rough)));
+    var candidates = [1,2,5,10].map(function(m){ return m*mag; });
+    for (var i = 0; i < candidates.length; i++) if (candidates[i] >= rough) return candidates[i];
+    return candidates[candidates.length-1];
+  }
+
+  var chartState = null;
+
+  function drawChart(p) {
+    var svgEl = document.getElementById('chart-svg');
+    if (!svgEl) return;
+    while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
+
+    var W=320, H=140, PL=40, PR=12, PT=10, PB=20;
+    var gW = W - PL - PR, gH = H - PT - PB;
+    var n = p.years.length;
+    var allVals = p.plan.slice();
+    for (var i = 0; i < p.actual.length; i++) if (p.actual[i] != null) allVals.push(p.actual[i]);
+    var rawMax = Math.max.apply(null, allVals);
+    var step = niceTickStep(rawMax, 4);
+    var maxVal = Math.ceil(rawMax/step) * step;
+    chartState = {p:p, W:W, PL:PL, PT:PT, gW:gW, gH:gH, n:n, maxVal:maxVal};
+
+    function xi(ii) { return PL + ii * (gW/(n-1)); }
+    function yv(v) { return PT + gH - (v/maxVal) * gH; }
+    function fmtY(v) {
+      if (v === 0) return '0';
+      if (v >= 10000) return (v/10000) + '億';
+      if (v >= 1000) return (v/1000) + '千万';
+      return v + '万';
+    }
+
+    var ticks = [];
+    for (var v = 0; v <= maxVal; v += step) ticks.push(v);
+    for (var ti = 0; ti < ticks.length; ti++) {
+      var tv = ticks[ti], yy = yv(tv);
+      svgEl.appendChild(makeSvgEl('line', {x1:PL, y1:yy, x2:W-PR, y2:yy, stroke:'rgba(128,128,128,0.2)', 'stroke-width':0.5}));
+      var txt = makeSvgEl('text', {x:PL-4, y:yy+3, 'text-anchor':'end', 'font-size':8, fill:'#888'});
+      txt.textContent = fmtY(tv);
+      svgEl.appendChild(txt);
+    }
+
+    var xStep = Math.max(1, Math.ceil(n/5));
+    for (var yi2 = 0; yi2 < p.years.length; yi2++) {
+      if (yi2 % xStep === 0 || yi2 === n-1) {
+        var xt = makeSvgEl('text', {x:xi(yi2), y:H-4, 'text-anchor':'middle', 'font-size':8, fill:'#888'});
+        xt.textContent = p.years[yi2];
+        svgEl.appendChild(xt);
+      }
+    }
+
+    var planPtsArr = [];
+    for (var pi = 0; pi < p.plan.length; pi++) planPtsArr.push(xi(pi) + ',' + yv(p.plan[pi]));
+    svgEl.appendChild(makeSvgEl('polyline', {points:planPtsArr.join(' '), fill:'none', stroke:'#0C447C', 'stroke-width':1.5, 'stroke-dasharray':'4 3', opacity:0.7}));
+
+    var actIdx = [];
+    for (var ai = 0; ai < p.actual.length; ai++) if (p.actual[ai] != null) actIdx.push(ai);
+    if (actIdx.length > 1) {
+      var actPtsArr = [];
+      for (var aai = 0; aai < actIdx.length; aai++) actPtsArr.push(xi(actIdx[aai]) + ',' + yv(p.actual[actIdx[aai]]));
+      svgEl.appendChild(makeSvgEl('polyline', {points:actPtsArr.join(' '), fill:'none', stroke:'#1D9E75', 'stroke-width':2, 'stroke-linecap':'round', 'stroke-linejoin':'round'}));
+    }
+
+    for (var ei = 0; ei < p.events.length; ei++) {
+      var ev = p.events[ei];
+      var ev_v = p.plan[ev.idx];
+      var cx = xi(ev.idx), cy = yv(ev_v);
+      var color = ev.type === 'spend' ? '#E24B4A' : ev.type === 'in' ? '#EF9F27' : '#0C447C';
+      var hit = makeSvgEl('circle', {cx:cx, cy:cy, r:13, fill:'transparent'});
+      hit.style.cursor = 'pointer';
+      hit.setAttribute('data-ev', String(ev.idx));
+      hit.addEventListener('click', (function(idx){
+        return function(){ selectEvent(idx); };
+      })(ev.idx));
+      svgEl.appendChild(hit);
+      if (ev.type === 'spend') {
+        var vLine = makeSvgEl('line', {x1:cx, y1:PT, x2:cx, y2:PT+gH, stroke:'#E24B4A', 'stroke-width':0.5, 'stroke-dasharray':'3 2', opacity:0.3});
+        vLine.style.pointerEvents = 'none';
+        svgEl.appendChild(vLine);
+        var sp = makeSvgEl('circle', {cx:cx, cy:cy, r:5, fill:color});
+        sp.style.pointerEvents = 'none';
+        svgEl.appendChild(sp);
+      } else {
+        var pt = makeSvgEl('circle', {cx:cx, cy:cy, r:4, fill:color, stroke:'#fff', 'stroke-width':1.5});
+        pt.style.pointerEvents = 'none';
+        svgEl.appendChild(pt);
+      }
+    }
+
+    for (var ai2 = 0; ai2 < actIdx.length; ai2++) {
+      var apt = makeSvgEl('circle', {cx:xi(actIdx[ai2]), cy:yv(p.actual[actIdx[ai2]]), r:2.5, fill:'#1D9E75'});
+      apt.style.pointerEvents = 'none';
+      svgEl.appendChild(apt);
+    }
+    if (actIdx.length > 0) {
+      var li = actIdx[actIdx.length-1];
+      var glow = makeSvgEl('circle', {cx:xi(li), cy:yv(p.actual[li]), r:6, fill:'#1D9E75', opacity:0.2});
+      glow.style.pointerEvents = 'none';
+      svgEl.appendChild(glow);
+    }
+  }
+
+  function renderEvents(p) {
+    var evCard = document.getElementById('ev-card');
+    if (!evCard) return;
+    evCard.innerHTML = '';
+    for (var i = 0; i < p.events.length; i++) {
+      var ev = p.events[i];
+      var row = document.createElement('div');
+      row.className = 'ev-row';
+      row.setAttribute('data-ev', String(ev.idx));
+      row.innerHTML =
+        '<div class="ev-yr">' + ev.year + '</div>' +
+        '<div class="ev-dot" style="background:' + ev.dot + ';"></div>' +
+        '<div class="ev-body">' +
+          '<div class="ev-name">' + ev.name + '</div>' +
+          '<div class="ev-detail">' + ev.detail + '</div>' +
+          '<div class="ev-amt ' + (ev.pos ? 'pos' : 'neg') + '">' + ev.amt + '</div>' +
+        '</div>';
+      row.addEventListener('click', (function(idx){
+        return function(){ selectEvent(idx); };
+      })(ev.idx));
+      evCard.appendChild(row);
+    }
+  }
+
+  function selectEvent(idx) {
+    if (!chartState) return;
+    var ev = null;
+    for (var i = 0; i < chartState.p.events.length; i++) {
+      if (chartState.p.events[i].idx === idx) { ev = chartState.p.events[i]; break; }
+    }
+    if (!ev) return;
+    showTooltip(ev);
+    var rows = document.querySelectorAll('.ev-row');
+    for (var r = 0; r < rows.length; r++) rows[r].classList.remove('highlight','highlight-red');
+    var row = document.querySelector('.ev-row[data-ev="' + idx + '"]');
+    if (row) {
+      row.classList.add(ev.type === 'spend' ? 'highlight-red' : 'highlight');
+      var container = document.getElementById('ev-card');
+      var cR = container.getBoundingClientRect();
+      var rR = row.getBoundingClientRect();
+      var offset = rR.top - cR.top - cR.height/2 + rR.height/2;
+      container.scrollBy({top:offset, behavior:'smooth'});
+      setTimeout(function(){ row.classList.remove('highlight','highlight-red'); }, 3500);
+    }
+    clearTimeout(window.__tipTimer);
+    window.__tipTimer = setTimeout(function(){
+      var tip = document.getElementById('tooltip');
+      if (tip) tip.classList.remove('on');
+    }, 3500);
+  }
+
+  function showTooltip(ev) {
+    var p = chartState.p;
+    var W = chartState.W, PL = chartState.PL, PT = chartState.PT;
+    var gW = chartState.gW, gH = chartState.gH, n = chartState.n, maxVal = chartState.maxVal;
+    var tip = document.getElementById('tooltip');
+    document.getElementById('tip-title').textContent = ev.year + ' ' + ev.name;
+    var amtEl = document.getElementById('tip-amt');
+    amtEl.textContent = ev.amt;
+    amtEl.className = 'tip-amt ' + (ev.pos ? 'pos' : 'neg');
+    var svg = document.getElementById('chart-svg');
+    var rect = svg.getBoundingClientRect();
+    var graphCard = document.getElementById('graph-card');
+    var cardRect = graphCard.getBoundingClientRect();
+    var scale = rect.width / W;
+    var xInSvg = PL + ev.idx * (gW/(n-1));
+    var yInSvg = PT + gH - (p.plan[ev.idx]/maxVal) * gH;
+    var leftPx = (rect.left - cardRect.left) + xInSvg * scale;
+    var topPx = (rect.top - cardRect.top) + yInSvg * scale;
+    tip.style.left = leftPx + 'px';
+    tip.style.top = topPx + 'px';
+    tip.classList.add('on');
+  }
+
+  function showDetail(key) {
+    var p = PROJECTS[key];
+    if (!p) return;
+    showPage('detail');
+    document.getElementById('d-name').textContent = p.name;
+    document.getElementById('d-timing').textContent = p.timing;
+    document.getElementById('d-now').textContent = '¥' + p.now.toLocaleString();
+    document.getElementById('d-status-txt').textContent = p.statusTxt;
+    document.getElementById('d-ai').textContent = p.ai;
+    renderEvents(p);
+    drawChart(p);
+  }
+
+  function init() {
+    drawDonut('svg-pool', [
+      {v:3000000, c:'#0C447C'},
+      {v:2500000, c:'#185FA5'},
+      {v:1000000, c:'#378ADD'},
+      {v:800000, c:'#85B7EB'},
+      {v:450000, c:'#B5D4F4'}
+    ]);
+    drawDonut('svg-pf', [
+      {v:3000000, c:'#0C447C'},
+      {v:2500000, c:'#1D9E75'},
+      {v:1000000, c:'#888780'},
+      {v:1150000, c:'#534AB7'},
+      {v:100000, c:'#EF9F27'}
+    ]);
+
+    var cardPool = document.getElementById('card-pool');
+    if (cardPool) cardPool.addEventListener('click', function(){ showPage('pool'); });
+    var cardPf = document.getElementById('card-pf');
+    if (cardPf) cardPf.addEventListener('click', function(){ showPage('pf'); });
+
+    var backBtns = document.querySelectorAll('.back-btn');
+    for (var bi = 0; bi < backBtns.length; bi++) {
+      backBtns[bi].addEventListener('click', (function(btn){
+        return function(){
+          var pg = btn.getAttribute('data-page');
+          if (pg) showPage(pg);
+        };
+      })(backBtns[bi]));
+    }
+
+    var detailCards = document.querySelectorAll('[data-detail]');
+    for (var di = 0; di < detailCards.length; di++) {
+      detailCards[di].addEventListener('click', (function(card){
+        return function(){
+          var k = card.getAttribute('data-detail');
+          if (k) showDetail(k);
+        };
+      })(detailCards[di]));
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
