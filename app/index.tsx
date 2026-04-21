@@ -44,7 +44,7 @@ function SegmentBar({ data }: { data: typeof POOL_DATA }) {
   );
 }
 
-function LegendRow({ name, color, amount }: { name: string; color: string; amount: string }) {
+function LegendRow({ name, color, amount }: { name: string; color: string; amount: string; key?: number }) {
   return (
     <View style={styles.legendRow}>
       <View style={styles.legendLeft}>
